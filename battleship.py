@@ -102,14 +102,20 @@ class Grid:
                 secondary_counter += 1
             print(temp_string)
 
-        def coord_conv(self, rows, columns):
-            # takes alphanumeric grid coordinates true to Battleship Game Style
-            # and converts to common zero-indexed list of row and column
-            # indicies
-            pass
+    def coord_conv(self, rows, columns):
+        # takes alphanumeric grid coordinates true to Battleship Game Style
+        # and converts to common zero-indexed list of row and column
+        # indicies
+        coord_list=[]
+        coord_list.append(self.translate_from_dict.get(rows)-1)
+        coord_list.append(columns-1)
+        return coord_list
+            
 
 
 class Ship:
+    movement_dict={'N':[-1, 0], 'S': [1, 0], 'E': [0, 1], 'W':[0, -1]}
+
     def __init__(self, ship_name, ship_size, Grid, icon):
         self.ship_name = ship_name
         self.ship_size = ship_size
@@ -117,56 +123,67 @@ class Ship:
         self.is_placed = False
         self.abbreviation = icon
 
-    def is_valid_placement(self, player, row, column, direction):
-        # DOES NOT WORK CURRENTLY, ALSO NEEDS TO CHECK FOR NOT OVERWRITING
-        # ANOTHER SHIP
+    def is_valid_placement(self, player, coord_list,  direction):
+        
         # if invalid location, i.e. if ending point or starting point are not
         # locations in the grid, or direction not N, E, S or W, return False
-        if direction == "N":
-            if (player.griddy[row - self.ship_size][column]) or (
-                player.griddy[row][column]
-            ) not in player.griddy:
+        direction_vector = self.movement_dict[direction]
+        for i in range(self.ship_size):
+            if coord_list[0] < 0 or coord_list[1] < 0 or coord_list[0] > len(player.griddy)-1 or coord_list[1] > len(player.griddy[0])-1:
+                # note, len(player.griddy[0]) column length check assumes all columns of the list are the same length
+                # as the first column to avoid an index out of range error
                 return False
-        elif direction == "S":
-            if (player.griddy[row + self.ship_size][column]) or (
-                player.griddy[row][column]
-            ) not in player.griddy:
+            if player.griddy[coord_list[0]][coord_list[1]] != ['  ']:
                 return False
-        elif direction == "E":
-            if (player.griddy[row][column + self.ship_size]) or (
-                player.griddy[row][column]
-            ) not in player.griddy:
-                return False
-        elif direction == "W":
-            if (player.griddy[row][column - self.ship_size]) or (
-                player.griddy[row][column]
-            ) not in player.griddy:
-                return False
-        else:
-            return False
+            coord_list[0] += direction_vector[0]
+            coord_list[1] += direction_vector[1]
+        return True
+        
+        # if direction == "N":
+        #     if (player.griddy[row - self.ship_size][column]) or (
+        #         player.griddy[row][column]
+        #     ) not in player.griddy:
+        #         return False
+        # elif direction == "S":
+        #     if (player.griddy[row + self.ship_size][column]) or (
+        #         player.griddy[row][column]
+        #     ) not in player.griddy:
+        #         return False
+        # elif direction == "E":
+        #     if (player.griddy[row][column + self.ship_size]) or (
+        #         player.griddy[row][column]
+        #     ) not in player.griddy:
+        #         return False
+        # elif direction == "W":
+        #     if (player.griddy[row][column - self.ship_size]) or (
+        #         player.griddy[row][column]
+        #     ) not in player.griddy:
+        #         return False
+        # else:
+        #     return False
 
-    def place_ship(self, player, row, column, direction):
+    def place_ship(self, player, coord_list, direction):
         # place ship in grid
         if direction == "N":
             for length in range(self.ship_size):
-                player.griddy[row][column] = [self.abbreviation]
-                row -= 1
+                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                coord_list[0] -= 1
         elif direction == "S":
             for length in range(self.ship_size):
-                player.griddy[row][column] = [self.abbreviation]
-                row += 1
+                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                coord_list[0] += 1
         elif direction == "E":
             for length in range(self.ship_size):
-                player.griddy[row][column] = [self.abbreviation]
-                column += 1
+                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                coord_list[1] += 1
         elif direction == "W":
             for length in range(self.ship_size):
-                player.griddy[row][column] = [self.abbreviation]
-                column -= 1
+                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                coord_list[1] -= 1
         self.is_placed = True
 
 
-def guess(Grid, row, column):
+def guess(Grid, coord_list):
     # checks a grid location for a ship, marks hit or miss in that location
     # could return type of ship hit
     #
@@ -192,12 +209,17 @@ destroyer = Ship("Destroyer", 2, player1, "DD")
 
 player1.griddy[2][1] = "['DD']"
 player1.griddy[3][1] = "['DD']"
-print(battleship.is_valid_placement(player2, 4, 5, "S"))
-battleship.place_ship(player2, 4, 5, "S")
-carrier.place_ship(player2, 2, 2, "E")
-player1.print_grid()
+carrier.place_ship(player2, player2.coord_conv('B',3), "E")
+print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "N"))
+print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "S"))
+print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "E"))
+print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "W"))
+battleship.place_ship(player2, player2.coord_conv("E", 4), "S")
+
+# player1.print_grid()
 print("")
 player2.print_grid()
+
 
 
 # left to do:    done --add A-J, 1-10 elements to display in print_grid.
