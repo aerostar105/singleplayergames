@@ -123,47 +123,40 @@ class Ship:
         self.is_placed = False
         self.abbreviation = icon
 
-    def is_valid_placement(self, player, coord_list,  direction):
+    def __repr__(self):
+        return str(self.ship_name)
         
-        # if invalid location, i.e. if ending point or starting point are not
-        # locations in the grid, or direction not N, E, S or W, return False
+    def is_valid_placement(self, player, coords,  direction):
+        # if invalid location, i.e. if any positions along the length of the ship are not
+        # locations in the grid or not empty, return False
+        # print("Starting is_valid_placement coords")
+        # print(coords)
+        coordy=coords.copy()
+        # print(coordy)
         direction_vector = self.movement_dict[direction]
+        # print(direction_vector)
         for i in range(self.ship_size):
-            if coord_list[0] < 0 or coord_list[1] < 0 or coord_list[0] > len(player.griddy)-1 or coord_list[1] > len(player.griddy[0])-1:
+            if coordy[0] < 0 or coordy[1] < 0 or coordy[0] > len(player.griddy)-1 or coordy[1] > len(player.griddy[0])-1:
                 # note, len(player.griddy[0]) column length check assumes all columns of the list are the same length
                 # as the first column to avoid an index out of range error
                 return False
-            if player.griddy[coord_list[0]][coord_list[1]] != ['  ']:
+            if player.griddy[coordy[0]][coordy[1]] != ['  ']:
                 return False
-            coord_list[0] += direction_vector[0]
-            coord_list[1] += direction_vector[1]
+            coordy[0] += direction_vector[0]
+            coordy[1] += direction_vector[1]
+        #     print(coordy)
+        #     print(direction_vector)
+        # print("Ending is_valid_placement coords")
+        # print(coords)
+        # print(coordy)
         return True
-        
-        # if direction == "N":
-        #     if (player.griddy[row - self.ship_size][column]) or (
-        #         player.griddy[row][column]
-        #     ) not in player.griddy:
-        #         return False
-        # elif direction == "S":
-        #     if (player.griddy[row + self.ship_size][column]) or (
-        #         player.griddy[row][column]
-        #     ) not in player.griddy:
-        #         return False
-        # elif direction == "E":
-        #     if (player.griddy[row][column + self.ship_size]) or (
-        #         player.griddy[row][column]
-        #     ) not in player.griddy:
-        #         return False
-        # elif direction == "W":
-        #     if (player.griddy[row][column - self.ship_size]) or (
-        #         player.griddy[row][column]
-        #     ) not in player.griddy:
-        #         return False
-        # else:
-        #     return False
+     
 
     def place_ship(self, player, coord_list, direction):
         # place ship in grid
+        # print("place_ships coordinates")
+        # print(coord_list)
+        # print(direction)
         if direction == "N":
             for length in range(self.ship_size):
                 player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
@@ -189,11 +182,40 @@ def guess(Grid, coord_list):
     #
     pass
 
+def rand_place_ships(board, ship_list):
+    direction_list = ['N', 'S', 'E', 'W']
+    while len(ship_list) > 0:
+        x_rand = rand.randint(0,9)
+        # print(x_rand)
+        y_rand = rand.randint(0,9)
+        # print(y_rand)
+        dir_rand = rand.choice(direction_list)
+        # print(dir_rand)
+        coord = [x_rand, y_rand]
+        # print(coord)
+        if ship_list[0].is_valid_placement(board, coord, dir_rand):
+            ship_list[0].place_ship(board, coord, dir_rand)
+            ship_list.pop(0)
+        # print(ship_list)
+        # board.print_grid()
 
 # new_grid = Grid(4, 5)
 # print(new_grid.griddy)
 # print("/n/n/n")
 # new_grid.print_grid()
+
+# player1.griddy[2][1] = "['DD']"
+# player1.griddy[3][1] = "['DD']"
+# carrier.place_ship(player2, player2.coord_conv('B',3), "E")
+# print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "N"))
+# print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "S"))
+# print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "E"))
+# print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "W"))
+# battleship.place_ship(player2, player2.coord_conv("E", 4), "S")
+
+# player1.print_grid()
+# print("")
+# player2.print_grid()
 
 # main gameplay loop
 standard_board_size = [10, 10]
@@ -201,31 +223,46 @@ standard_board_size = [10, 10]
 player1 = Grid(standard_board_size[0], standard_board_size[1])
 player2 = Grid(standard_board_size[0], standard_board_size[1])
 
+
 carrier = Ship("Carrier", 5, player1, "CV")
 battleship = Ship("Battleship", 4, player1, "BB")
 cruiser = Ship("Cruiser", 3, player1, "CR")
 submarine = Ship("Submarine", 3, player1, "SF")
 destroyer = Ship("Destroyer", 2, player1, "DD")
 
-player1.griddy[2][1] = "['DD']"
-player1.griddy[3][1] = "['DD']"
-carrier.place_ship(player2, player2.coord_conv('B',3), "E")
-print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "N"))
-print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "S"))
-print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "E"))
-print(battleship.is_valid_placement(player2, player2.coord_conv('B', 9), "W"))
-battleship.place_ship(player2, player2.coord_conv("E", 4), "S")
+ship_list_player1 = [carrier, battleship, cruiser, submarine, destroyer]
 
+print(ship_list_player1)
+rand_place_ships(player1, ship_list_player1)
+player1.print_grid()
+print(ship_list_player1)
+# print("Welcome to an electronic Battleship clone")
+
+# print("this is a non-commercial copy created as a python educational product")
+
+# # while ships left to print > 0: do the following
 # player1.print_grid()
-print("")
-player2.print_grid()
+# #print list of ships to place
+# print("Please place your ships by entering the ship number, its starting location, and direction")
+# print("in the form: 1, B, 7, S")
+# # input_string = input()
+# # check validity of ship placement, then place the ship
+# # if not valid, print error message to user
+
+# # create CPU ship placement
+
+# at this point, both Grids have all ships placed
 
 
+# print("Here ")
 
-# left to do:    done --add A-J, 1-10 elements to display in print_grid.
+
+# left to do:
+#     
+# done --add A-J, 1-10 elements to display in print_grid.
 # done --create list of ships in main method
 # done --create ship placement logic function to grid class
-# fix logic test for ship.is_valid_placement()
+# done -- logic test for ship.is_valid_placement()
 # create AI logic behavior for guessing
 # initialize boards for player and AI
 # create main gameplay loop
@@ -252,8 +289,22 @@ player2.print_grid()
 # reduce the complexity a new function Ship.is_valid_placement() was created to
 # split the complexity and remove the warning.
 
+# several times I thought is_valid_placement() worked, once I got the rand_
+# place_ships() function in place I have discovered several out of index errors
+# and ship overwrites/incorrect placements. Using print() statements to track 
+# location indexes throughout the two methods revealed that the location index 
+# was modified during checks along the length of the proposed ship as specified
+# but what was unknown was that this was performed on the location variable and
+# not a copy of one. Tested individually, both functions worked fine but when
+# combined, tried to place a ship one space away from the end of the checked 
+# location instead of the start.  Changing is_valid_placement to work with a 
+# copy of the location coordinates using b = a.copy() resolved the logic 
+# errors.
+
 # game is initialized with a 10x10 board size but built with customizable size
 # logically sound up to 26x26 as-is but not visually practical printed to the
 # standard terminal past 22x12
 
 # looks like coord_conv() is a Facade pattern
+
+
