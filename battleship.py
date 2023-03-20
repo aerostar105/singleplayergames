@@ -66,6 +66,8 @@ class Grid:
         self.columns = columns
         self.row_legend = []
         self.column_legend = []
+        self.remaining_guess_list = []
+        self.remaining_ship_list = []
         # create legends
         for i in range(1, rows + 1):
             self.row_legend.append([Grid.translate_to_dict.get(i)])
@@ -81,6 +83,8 @@ class Grid:
             temp_list = []
             for j in range(columns):
                 temp_list.append(["  "])
+                #create list of all coords for guesses
+                self.remaining_guess_list.append([i,j])
             self.griddy.append(temp_list)
 
     # def __repr__(self):
@@ -157,30 +161,59 @@ class Ship:
         # print("place_ships coordinates")
         # print(coord_list)
         # print(direction)
+
         if direction == "N":
             for length in range(self.ship_size):
-                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                copy_list=coord_list.copy()
+                player.griddy[copy_list[0]][copy_list[1]] = [self.abbreviation]
+                player.remaining_ship_list.append(copy_list)
                 coord_list[0] -= 1
         elif direction == "S":
             for length in range(self.ship_size):
-                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                copy_list=coord_list.copy()
+                player.griddy[copy_list[0]][copy_list[1]] = [self.abbreviation]
+                player.remaining_ship_list.append(copy_list)
                 coord_list[0] += 1
         elif direction == "E":
             for length in range(self.ship_size):
-                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                copy_list=coord_list.copy()
+                player.griddy[copy_list[0]][copy_list[1]] = [self.abbreviation]
+                player.remaining_ship_list.append(copy_list)
                 coord_list[1] += 1
         elif direction == "W":
             for length in range(self.ship_size):
-                player.griddy[coord_list[0]][coord_list[1]] = [self.abbreviation]
+                copy_list=coord_list.copy()
+                player.griddy[copy_list[0]][copy_list[1]] = [self.abbreviation]
+                player.remaining_ship_list.append(copy_list)
                 coord_list[1] -= 1
         self.is_placed = True
 
 
-def guess(Grid, coord_list):
-    # checks a grid location for a ship, marks hit or miss in that location
-    # could return type of ship hit
-    #
-    pass
+def guess(enemy_board, personal_guess_board, coords):
+    # checks a grid location for a ship, marks hit or miss in that location on guess board and board
+    # print("guess initializing")
+    coord_list = coords.copy()
+    # print(coords)
+    # print(" ^coords passed to function")
+    # print(coord_list)
+    # print("^ copy of coords passed to function")
+    # print(coord_list in personal_guess_board.remaining_guess_list)
+    # print("^coord_list in personal_guess_board.remaining_guess_list ")
+    if (not(coord_list[0] < 0 or coord_list[1] < 0 or coord_list[0] > len(enemy_board.griddy)-1 or coord_list[1] > len(enemy_board.griddy[0])-1) and coord_list in personal_guess_board.remaining_guess_list):
+        # note, len(player.griddy[0]) column length check assumes all columns of the list are the same length
+        # as the first column to avoid an index out of range error
+        if enemy_board.griddy[coord_list[0]][coord_list[1]] != ['  ']:
+            print("{ship} was hit!".format(ship = enemy_board.griddy[coord_list[0]][coord_list[1]]))
+            enemy_board.griddy[coord_list[0]][coord_list[1]] = ['><']
+            enemy_board.remaining_ship_list.remove(coord_list)
+            personal_guess_board.griddy[coord_list[0]][coord_list[1]] = ['><']
+            personal_guess_board.remaining_guess_list.remove(coord_list)
+        else:
+            print("Miss")
+            personal_guess_board.griddy[coord_list[0]][coord_list[1]] = ['()']
+            enemy_board.griddy[coord_list[0]][coord_list[1]] = ['()']
+            personal_guess_board.remaining_guess_list.remove(coord_list)
+
 
 def rand_place_ships(board, ship_list):
     direction_list = ['N', 'S', 'E', 'W']
@@ -222,7 +255,8 @@ standard_board_size = [10, 10]
 
 player1 = Grid(standard_board_size[0], standard_board_size[1])
 player2 = Grid(standard_board_size[0], standard_board_size[1])
-
+player1_guesses = Grid(standard_board_size[0], standard_board_size[1])
+player2_guesses = Grid(standard_board_size[0], standard_board_size[1])
 
 carrier = Ship("Carrier", 5, player1, "CV")
 battleship = Ship("Battleship", 4, player1, "BB")
@@ -232,15 +266,23 @@ destroyer = Ship("Destroyer", 2, player1, "DD")
 
 ship_list_player1 = [carrier, battleship, cruiser, submarine, destroyer]
 
-print(ship_list_player1)
+carrier = Ship("Carrier", 5, player2, "CV")
+battleship = Ship("Battleship", 4, player2, "BB")
+cruiser = Ship("Cruiser", 3, player2, "CR")
+submarine = Ship("Submarine", 3, player2, "SF")
+destroyer = Ship("Destroyer", 2, player2, "DD")
+
+ship_list_player2 = [carrier, battleship, cruiser, submarine, destroyer]
+
+
+# print(ship_list_player1)
 rand_place_ships(player1, ship_list_player1)
-player1.print_grid()
-print(ship_list_player1)
-# print("Welcome to an electronic Battleship clone")
+rand_place_ships(player2, ship_list_player2)
 
-# print("this is a non-commercial copy created as a python educational product")
-
-# # while ships left to print > 0: do the following
+print("Welcome to an electronic Battleship clone")
+print("this is a non-commercial copy created as a python educational product")
+# print("Place your ships:  1: Randomly, 2: Manually")
+# while ships left to print > 0: do the following
 # player1.print_grid()
 # #print list of ships to place
 # print("Please place your ships by entering the ship number, its starting location, and direction")
@@ -248,11 +290,33 @@ print(ship_list_player1)
 # # input_string = input()
 # # check validity of ship placement, then place the ship
 # # if not valid, print error message to user
-
 # # create CPU ship placement
 
 # at this point, both Grids have all ships placed
+while (len(player1.remaining_ship_list) > 0) and (len(player2.remaining_ship_list) > 0):
+    # player2.print_grid()
+    # print("------")
+    player1_guesses.print_grid()
+    print("\n")
+    player1.print_grid()
+    print("Input the capital letter of your guess row: (or X for eXit)")
+    guess_row = input()
+    if guess_row == 'X':
+        break
+    print("Input the number of your guess column:")
+    guess_column = int(input())
+    guess(player2, player1_guesses, player1.coord_conv(guess_row, guess_column))
+    # perform cpu player guess
+    player2_guess_coord = rand.choice(player2_guesses.remaining_guess_list)
+    guess(player1, player2_guesses, player2_guess_coord)
 
+if len(player1.remaining_ship_list) == 0:
+    print("player2 wins")
+elif len(player2.remaining_ship_list) == 0:
+    print("player1 wins")     
+else:
+    print("Error:no winner found")
+print("Thanks for playing!")
 
 # print("Here ")
 
