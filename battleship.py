@@ -87,8 +87,6 @@ class Grid:
                 self.remaining_guess_list.append([i,j])
             self.griddy.append(temp_list)
 
-    # def __repr__(self):
-    #     return self.griddy
 
     def print_grid(self):
         column_string = "['  ']"
@@ -120,10 +118,11 @@ class Grid:
 class Ship:
     movement_dict={'N':[-1, 0], 'S': [1, 0], 'E': [0, 1], 'W':[0, -1]}
 
-    def __init__(self, ship_name, ship_size, Grid, icon):
+    def __init__(self, ship_name, ship_size, player, icon):
         self.ship_name = ship_name
         self.ship_size = ship_size
-        self.hp = ship_size
+        # self.hp = ship_size
+        # self.owner = player
         self.is_placed = False
         self.abbreviation = icon
 
